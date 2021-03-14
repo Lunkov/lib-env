@@ -61,12 +61,12 @@ func WaitFile(filename string, timeout int) bool {
 type FuncParseFileDB func (*gorm.DB, string, []byte) int
 type FuncParseFile func (string, []byte) int
 
-func LoadFromYMLFilesDB(dbh *gorm.DB, scanPath string, fParse FuncParseFileDB) int {
+func LoadFromFilesDB(dbh *gorm.DB, scanPath string, extension string, fParse FuncParseFileDB) int {
   count := 0
   errScan := filepath.Walk(scanPath, func(filename string, f os.FileInfo, err error) error {
-    if f != nil && f.IsDir() == false {
+    if f != nil && f.IsDir() == false && (extension == "" || extension == filepath.Ext(filename)) {
       if glog.V(2) {
-        glog.Infof("FILE: %s\n", filename)
+        glog.Infof("LOG: ReadFile: %s", filename)
       }
       var err error
       yamlFile, err := ioutil.ReadFile(filename)
@@ -79,21 +79,21 @@ func LoadFromYMLFilesDB(dbh *gorm.DB, scanPath string, fParse FuncParseFileDB) i
     return nil
   })
   if glog.V(2) {
-    glog.Infof("Scan Path: %s, Items: %d\n", scanPath, count)
+    glog.Infof("LOG: Scan Path: %s, Items: %d\n", scanPath, count)
   }
   if errScan != nil {
-    glog.Errorf("ERR: %s\n", errScan)
+    glog.Errorf("ERR: ScanPath(%s): %s", scanPath, errScan)
   }
 
   return count
 }
 
-func LoadFromYMLFiles(scanPath string, fParse FuncParseFile) int {
+func LoadFromFiles(scanPath string, extension string, fParse FuncParseFile) int {
   count := 0
   errScan := filepath.Walk(scanPath, func(filename string, f os.FileInfo, err error) error {
-    if f != nil && f.IsDir() == false {
+    if f != nil && f.IsDir() == false && (extension == "" || extension == filepath.Ext(filename)) {
       if glog.V(2) {
-        glog.Infof("FILE: %s\n", filename)
+        glog.Infof("LOG: ReadFile: %s\n", filename)
       }
       var err error
       yamlFile, err := ioutil.ReadFile(filename)
@@ -106,10 +106,10 @@ func LoadFromYMLFiles(scanPath string, fParse FuncParseFile) int {
     return nil
   })
   if glog.V(2) {
-    glog.Infof("Scan Path: %s, Items: %d\n", scanPath, count)
+    glog.Infof("LOG: Scan Path: %s, Items: %d\n", scanPath, count)
   }
   if errScan != nil {
-    glog.Errorf("ERR: %s\n", errScan)
+    glog.Errorf("ERR: ScanPath(%s): %s", scanPath, errScan)
   }
 
   return count
